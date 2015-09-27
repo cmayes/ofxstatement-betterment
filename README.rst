@@ -58,7 +58,7 @@ setup.py
 
 ::
 
-  cd ofxstatement-betterment; python3 setup.py --user install
+  python3 setup.py install --user
 
 Configuration
 =============

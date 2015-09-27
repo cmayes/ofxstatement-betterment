@@ -12,3 +12,4 @@ eggs
 *.sublime*
 *.iml
 .idea/
+*.egg-info/

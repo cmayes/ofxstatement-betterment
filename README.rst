@@ -43,21 +43,22 @@ Installation
 ============
 
 You can install the plugin via most of the normal Python methods (be sure to
-install using your environment's python3 installation)
+install using your environment's python3 installation). Remove the `--user`
+option if you wish to install the package globally.
 
 pip
 ---
 
 ::
 
-  pip3 install ofxstatement-betterment
+  pip3 install --user ofxstatement-betterment
 
 setup.py
 --------
 
 ::
 
-  cd ofxstatement-betterment; python3 setup.py install
+  cd ofxstatement-betterment; python3 setup.py --user install
 
 Configuration
 =============

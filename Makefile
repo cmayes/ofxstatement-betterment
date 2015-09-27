@@ -49,14 +49,6 @@ coverage:
 	coverage html
 	see htmlcov/index.html
 
-docs:
-	rm -f docs/md_utils.rst
-	rm -f docs/modules.rst
-	sphinx-apidoc -o docs/ md_utils
-	$(MAKE) -C docs clean
-	$(MAKE) -C docs html
-	see docs/_build/html/index.html
-
 release: clean
 	python setup.py sdist upload
 	python setup.py bdist_wheel upload

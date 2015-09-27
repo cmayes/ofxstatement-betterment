@@ -35,7 +35,7 @@ clean-test:
 	rm -fr htmlcov/
 
 lint:
-	flake8 md_utils tests
+	flake8 ofxstatement tests
 
 test:
 	python setup.py test
@@ -44,7 +44,7 @@ test-all:
 	tox
 
 coverage:
-	coverage run --source md_utils setup.py test
+	coverage run --source ofxstatement setup.py test
 	coverage report -m
 	coverage html
 	see htmlcov/index.html

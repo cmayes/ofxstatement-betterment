@@ -1,12 +1,9 @@
+import csv
 from ofxstatement.plugin import Plugin
 from ofxstatement.parser import CsvStatementParser
 import re
 
 from ofxstatement import statement
-
-__author__ = 'Chris Mayes'
-__email__ = 'cmayes@cmay.es'
-__version__ = '0.1.0'
 
 
 class BettermentPlugin(Plugin):
@@ -23,9 +20,7 @@ class BettermentPlugin(Plugin):
     """
 
     def get_parser(self, fin):
-        encoding = self.settings.get('charset', 'utf-8')
-        f = open(fin, 'r', encoding=encoding)
-        parser = BettermentParser(f)
+        parser = BettermentParser(fin, self.settings.get('charset', 'utf-8'))
         parser.statement.bank_id = self.settings.get('bank', 'Betterment')
         parser.statement.account_id = self.settings.get('account', None)
         parser.statement.filter_zeros = str2bool(self.settings.get('filter_zeros', "true"))
@@ -58,10 +53,28 @@ class BettermentParser(CsvStatementParser):
                 }
     date_format = "%Y-%m-%d %H:%M:%S.%f"
 
+    def __init__(self, fin, encoding):
+        super(BettermentParser, self).__init__(fin)
+        self.encoding = encoding
+
     def parse(self):
-        stmt = super(BettermentParser, self).parse()
-        process_balances(stmt)
-        return stmt
+        """Read and parse statement
+
+        Return Statement object
+
+        May raise exceptions.ParseException on malformed input.
+        """
+        with open(self.fin, 'r', encoding=self.encoding) as fhandle:
+            for line in csv.reader(fhandle):
+                self.cur_record += 1
+                if not line:
+                    continue
+                stmt_line = self.parse_record(line)
+                if stmt_line:
+                    stmt_line.assert_valid()
+                    self.statement.lines.append(stmt_line)
+            process_balances(self.statement)
+            return self.statement
 
     def parse_record(self, line):
         if self.cur_record == 1:

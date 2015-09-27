@@ -1,9 +1,10 @@
 #!/usr/bin/python3
 """Setup
 """
-from setuptools import find_packages
-from distutils.core import setup
-import ofxstatement
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 
 with open('README.rst') as readme_file:
     readme = readme_file.read()
@@ -16,11 +17,11 @@ requirements = [
 ]
 
 setup(name='ofxstatement-betterment',
-      version=ofxstatement.plugins.betterment.__version__,
+      version='0.1.0',
       author="Chris Mayes",
       author_email="cmayes@cmay.es",
       url="https://github.com/cmayes/ofxstatement-betterment",
-      description=("Betterment plugin for ofxstatement"),
+      description="Betterment plugin for ofxstatement",
       long_description=readme + '\n\n' + history,
       license="GPLv3",
       keywords=["ofx", "banking", "statement"],
@@ -33,14 +34,19 @@ setup(name='ofxstatement-betterment',
           'Environment :: Console',
           'Operating System :: OS Independent',
           'License :: OSI Approved :: GNU Affero General Public License v3'],
-      packages=find_packages('src'),
-      package_dir={'': 'src'},
+      packages=[
+          'ofxstatement', 'ofxstatement.plugins',
+      ],
+      package_dir={'ofxstatement': 'ofxstatement',
+                   'ofxstatement.plugins': 'ofxstatement/plugins'},
       namespace_packages=["ofxstatement", "ofxstatement.plugins"],
       entry_points={
           'ofxstatement':
-          ['betterment = ofxstatement.plugins.betterment:BettermentPlugin']
-          },
-      install_requires=['ofxstatement'],
+              ['betterment = ofxstatement.plugins.betterment:BettermentPlugin']
+      },
+      install_requires=requirements,
       include_package_data=True,
-      zip_safe=True
+      zip_safe=True,
+      test_suite='tests',
+      tests_require=requirements
       )

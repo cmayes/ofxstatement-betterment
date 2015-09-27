@@ -2,6 +2,15 @@
 Betterment plugin for ofxstatement
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. image:: https://img.shields.io/travis/cmayes/ofxstatement-betterment.svg
+:target: https://travis-ci.org/cmayes/ofxstatement-betterment
+
+.. image:: https://img.shields.io/pypi/v/ofxstatement-betterment.svg
+:target: https://pypi.python.org/pypi/ofxstatement-betterment
+
+.. image:: https://coveralls.io/repos/cmayes/ofxstatement-betterment/badge.svg?branch=master&service=github
+:target: https://coveralls.io/github/cmayes/ofxstatement-betterment?branch=master
+
 This is an `ofxstatement`_ plugin for `Betterment`_ CSV statements downloaded
 from the site's `activity`_ page. `ofxstatement`_ converts the CSV into a
 series of "check" transactions in an OFX file, so `Moneydance`_ (for instance)
@@ -40,7 +49,7 @@ pip
 
 ::
 
-  pip install ofxstatement-betterment
+  pip3 install ofxstatement-betterment
 
 setup.py
 --------

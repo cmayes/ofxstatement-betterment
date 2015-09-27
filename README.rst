@@ -1,90 +1,77 @@
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Sample plugin for ofxstatement
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Betterment plugin for ofxstatement
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This project provides a boilerplate for custom plugins for ofxstatement.
-
-`ofxstatement`_ is a tool to convert proprietary bank statement to OFX format,
-suitable for importing to GnuCash. Plugin for ofxstatement parses a
-particular proprietary bank statement format and produces common data
-structure, that is then formatted into an OFX file.
+This is an `ofxstatement`_ plugin for `Betterment`_ CSV statements downloaded
+from the site's `activity`_ page. `ofxstatement`_ converts the CSV into a
+series of "check" transactions in an OFX file, so `Moneydance`_ (for instance)
+will only consider bank and credit card accounts for the generated OFX file's
+import. Given Betterment's daily gain/loss transaction data, the "check"
+transaction type works well enough.
 
 .. _ofxstatement: https://github.com/kedder/ofxstatement
+.. _Betterment: https://www.betterment.com/
+.. _activity: https://wwws.betterment.com/app/#activity
+.. _Moneydance: http://moneydance.com/
 
+`ofxstatement`_ is a tool for converting proprietary bank statements into the
+OFX format, suitable for importing into GnuCash, Moneydance, and other compatible
+applications. The plugin for ofxstatement parses a particular proprietary bank
+statement format and produces a common data structure that is then formatted
+into an OFX file.
 
-Users of ofxstatement have developed several plugins for their banks. They are
-listed on main `ofxstatement`_ site. If your bank is missing, you can develop
-your own plugin.
+Requirements
+============
 
-Setting up development environment
-==================================
+As with `ofxstatement`_, this plugin requires Python 3.  You will need to have
+`ofxstatement`_ installed; the package will be brought in as a dependency if
+you install the plugin via `pip`_.
 
-It is recommended to use ``virtualenv`` make a clean development environment.
-Setting up dev environment for writing a plugin is easy::
+.. _pip: https://pypi.python.org/pypi/pip
 
-  $ git clone https://github.com/kedder/ofxstatement-sample ofxstatement-yourbank
-  $ cd ofxstatement-yourbank
-  $ virtualenv -p python3 --no-site-packages .venv
-  $ . .venv/bin/activate
-  (.venv)$ python setup.py develop
+Installation
+============
 
-This will download all the dependencies and install them into your virtual
-environment. After this, you should be able to do::
+You can install the plugin via most of the normal Python methods (be sure to
+install using your environment's python3 installation)
 
-  (.venv)$ ofxstatement list-plugins
-  The following plugins are available:
+pip
+---
 
-    sample           Sample plugin (for developers only)
+::
 
+  pip install ofxstatement-betterment
 
+setup.py
+--------
 
-Your own plugin
-===============
+::
 
-To create your own plugin, follow these steps:
+  cd ofxstatement-betterment; python setup.py install
 
-* Edit ``setup.py`` and provide relevant metadata for your plugin.  Pay
-  close attention to ``entry_points`` parameter to ``setup`` function: it
-  lists plugins you are registering within ofxstatement. Give meaningful
-  name to the plugin and provide plugin class name
-* Replace contents of ``README.rst`` with description of your plugin
-* Rename ``ofxstatement/plugins/sample.py`` to match plugin package name
-  you have provided in ``entry_points`` parameter.
-* Open renamed sample.py and rename ``SamplePlugin`` and ``SampleParser``
-  classes to match your plugin class name.
-* Now, draw the rest of the owl (c).
+Configuration
+=============
 
-.. _ofxstatement-sample: https://github.com/kedder/ofxstatement-sample
+Note that you can specify 'bank' and 'account' in ofxstatement's configuration file (accessible
+using the `ofxstatement edit-config` command or directly at
+`~/.local/share/ofxstatement/config.ini` (on Linux, at least).  Setting these values makes it
+easier for your personal finance application to recognize which account the file's data
+belongs to.
 
-Your ``StatementParser`` is the main object that does all the hard work. It
-has only one public method: ``parse()``, that should return
-``ofxstatement.statement.Statement`` object, filled with data from given input.
-The default implementation, however, splits this work into two parts:
-``split_records()`` to split the whole file into logical parts, e.g.
-transaction records, and ``parse_record()`` to extract information from
-individual record. See ``src/ofxstatement/parser.py`` for details. If your
-statement' format looks like CSV file, you might find ``CsvStatementParser``
-class useful: it simplifies mapping bettween CSV columns and ``StatementLine``
-attributes.
+Also note that transactions for zero amounts are filtered by default.  If you wish to include
+zero-amount transactions, set 'zero_filter' to 'false' in your settings.  Here is an example
+of a settings block for the betterment plugin::
 
-``Plugin`` interface consists only of ``get_parser()`` method, that returns
-configured StatementParser object for given input filename. Docstrings on
-Plugin class is also useful for describing the purpose of your plugin. First
-line of it is visible in ``ofxstatement list-plugins`` output.
+  [betterment]
+  account = 8675309
+  plugin = betterment
+  zero_filter = false
 
-Testing
-=======
+Usage
+=====
 
-Test your code as you would do with any other project.  To make sure
-ofxstatement is still able to load your plugin, run::
+Export your Betterment `activity`_ into a CSV file (it's currently `transactions.csv`). Then run::
 
-  (.venv)$ ofxstatement list-plugins
+  $ ofxstatement convert -t betterment transactions.csv betterment.ofx
 
-You should be able to see your plugin listed.
-
-After you are done
-==================
-
-After your plugin is ready, feel free to open an issue on `ofxstatement`_
-project to include your plugin in "known plugin list". That would hopefully
-make life of other clients of your bank easier.
+You can then import `betterment.ofx` into the personal finance application of your choice.

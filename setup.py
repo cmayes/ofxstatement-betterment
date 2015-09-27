@@ -3,19 +3,25 @@
 """
 from setuptools import find_packages
 from distutils.core import setup
+import ofxstatement
 
-version = "0.0.1"
+with open('README.rst') as readme_file:
+    readme = readme_file.read()
 
-with open('README.rst') as f:
-    long_description = f.read()
+with open('HISTORY.rst') as history_file:
+    history = history_file.read().replace('.. :changelog:', '')
 
-setup(name='ofxstatement-sample',
-      version=version,
-      author="Andrey Lebedev",
-      author_email="andrey@lebedev.lt",
-      url="https://github.com/kedder/ofxstatement",
-      description=("Sample plugin for ofxstatement"),
-      long_description=long_description,
+requirements = [
+    'ofxstatement'
+]
+
+setup(name='ofxstatement-betterment',
+      version=ofxstatement.plugins.betterment.__version__,
+      author="Chris Mayes",
+      author_email="cmayes@cmay.es",
+      url="https://github.com/cmayes/ofxstatement-betterment",
+      description=("Betterment plugin for ofxstatement"),
+      long_description=readme + '\n\n' + history,
       license="GPLv3",
       keywords=["ofx", "banking", "statement"],
       classifiers=[
@@ -32,7 +38,7 @@ setup(name='ofxstatement-sample',
       namespace_packages=["ofxstatement", "ofxstatement.plugins"],
       entry_points={
           'ofxstatement':
-          ['sample = ofxstatement.plugins.sample:SamplePlugin']
+          ['betterment = ofxstatement.plugins.betterment:BettermentPlugin']
           },
       install_requires=['ofxstatement'],
       include_package_data=True,

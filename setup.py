@@ -17,7 +17,7 @@ requirements = [
 ]
 
 setup(name='ofxstatement-betterment',
-      version='0.2.1',
+      version='0.2.2',
       author="Chris Mayes",
       author_email="cmayes@cmay.es",
       url="https://github.com/cmayes/ofxstatement-betterment",

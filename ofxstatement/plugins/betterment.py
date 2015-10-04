@@ -1,6 +1,6 @@
 __author__ = 'Chris Mayes'
 __email__ = 'cmayes@cmay.es'
-__version__ = '0.2.2'
+__version__ = '0.2.3'
 
 import csv
 from ofxstatement.plugin import Plugin

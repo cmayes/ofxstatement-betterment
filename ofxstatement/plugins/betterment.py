@@ -1,3 +1,7 @@
+__author__ = 'Chris Mayes'
+__email__ = 'cmayes@cmay.es'
+__version__ = '0.2.2'
+
 import csv
 from ofxstatement.plugin import Plugin
 from ofxstatement.parser import CsvStatementParser

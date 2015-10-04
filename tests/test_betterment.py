@@ -22,6 +22,7 @@ POS_CSV_PATH = os.path.join(DATA_DIR, 'transactions_positive.csv')
 ALL_ZERO_CSV_PATH = os.path.join(DATA_DIR, 'transactions_zeros.csv')
 HEADER_CSV_PATH = os.path.join(DATA_DIR, 'transactions_header.csv')
 EMPTY_CSV_PATH = os.path.join(DATA_DIR, 'transactions_empty.csv')
+BLANK_BAL_PATH = os.path.join(DATA_DIR, 'transactions_blankbal.csv')
 
 
 # Shared Methods #
@@ -102,6 +103,19 @@ class TestBettermentEmpties(unittest.TestCase):
         self.assertIsNone(stmt.start_date)
         self.assertIsNone(stmt.end_date)
         self.assertEqual(0, len(stmt.lines))
+
+    def testEmptyEndingBalance(self):
+        """Strip out pending transactions."""
+        stmt = BettermentPlugin(None, {}).get_parser(BLANK_BAL_PATH).parse()
+        self.assertAlmostEqual(1319.74, stmt.start_balance)
+        self.assertAlmostEqual(1692.68, stmt.end_balance)
+        self.assertEqual(date(2015, 10, 2), to_date(stmt.start_date))
+        self.assertEqual(date(2015, 10, 2), to_date(stmt.end_date))
+        self.assertEqual(3, len(stmt.lines))
+        for stline in stmt.lines:
+            self.assertTrue(stline.memo in ('Dividend Reinvestment', 'Market Change'))
+            self.assertFalse(is_zero(stline.amount))
+            self.assertEqual(date(2015, 10, 2), to_date(stline.date))
 
 
 def to_date(dt):

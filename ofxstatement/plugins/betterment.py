@@ -34,7 +34,7 @@ def process_balances(stmt):
     If the statement has no transactions, it is returned unmodified.
 
     :param stmt: The statement data to process.
-    :return: The statement with modified start_balance, end_balance, start_date, and_end_date.
+    :return: Whether the balances were calculated.
     """
     if not stmt.lines:
         return False
@@ -89,7 +89,11 @@ class BettermentParser(CsvStatementParser):
         if self.statement.filter_zeros and is_zero(sl.amount):
             return None
 
-        sl.end_balance = float(san_line[3])
+        try:
+            sl.end_balance = float(san_line[3])
+        except ValueError:
+            # Usually indicates a pending transaction
+            return None
 
         # generate transaction id out of available data
         sl.id = statement.generate_transaction_id(sl)

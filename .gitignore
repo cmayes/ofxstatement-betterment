@@ -13,3 +13,4 @@ eggs
 *.iml
 .idea/
 *.egg-info/
+.tox

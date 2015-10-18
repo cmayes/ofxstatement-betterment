@@ -4,7 +4,7 @@
 History
 -------
 
-0.2.3 (2015-10-18)
+0.2.4 (2015-10-18)
 ------------------
 
 * Changed to a SHA-256 hash for the pseudo-unique transaction ID in order to improve

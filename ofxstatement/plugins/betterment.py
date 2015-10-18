@@ -1,3 +1,5 @@
+import hashlib
+
 __author__ = 'Chris Mayes'
 __email__ = 'cmayes@cmay.es'
 __version__ = '0.2.3'
@@ -6,8 +8,6 @@ import csv
 from ofxstatement.plugin import Plugin
 from ofxstatement.parser import CsvStatementParser
 import re
-
-from ofxstatement import statement
 
 
 class BettermentPlugin(Plugin):
@@ -100,7 +100,7 @@ class BettermentParser(CsvStatementParser):
             return None
 
         # generate transaction id out of available data
-        sl.id = statement.generate_transaction_id(sl)
+        sl.id = generate_stable_transaction_id(sl)
         return sl
 
 
@@ -112,3 +112,19 @@ def is_zero(fval):
 def str2bool(v):
     """Converts a string to a boolean value.  From http://stackoverflow.com/a/715468"""
     return v.lower() in ("yes", "true", "t", "1")
+
+
+def generate_stable_transaction_id(stmt_line):
+    """Generates a stable, pseudo-unique id for given statement line.
+
+    This function can be used in statement parsers when a real transaction id is
+    not available in the source statement.
+    """
+    h = hashlib.sha256()
+    if stmt_line.date is not None:
+        h.update(str(stmt_line.date).encode('utf-8'))
+    if stmt_line.memo is not None:
+        h.update(stmt_line.memo.encode('utf-8'))
+    if stmt_line.amount is not None:
+        h.update(str(stmt_line.amount).encode('utf-8'))
+    return h.hexdigest()

@@ -6,10 +6,11 @@ Tests for the ofxstatement Betterment plugin.
 from datetime import date
 import logging
 import unittest
+from ofxstatement.statement import StatementLine
 
 import os
 
-from ofxstatement.plugins.betterment import BettermentPlugin, is_zero
+from ofxstatement.plugins.betterment import BettermentPlugin, is_zero, generate_stable_transaction_id
 
 __author__ = 'cmayes'
 
@@ -116,6 +117,31 @@ class TestBettermentEmpties(unittest.TestCase):
             self.assertTrue(stline.memo in ('Dividend Reinvestment', 'Market Change'))
             self.assertFalse(is_zero(stline.amount))
             self.assertEqual(date(2015, 10, 2), to_date(stline.date))
+
+
+class TestBettermentStatementIdStability(unittest.TestCase):
+    all_hash = "316fcd14b9bb7d9bdb6a00473356c896aede98da3df9268bc57c319f209ad3d1"
+    amt_hash = "4ebc4a141b378980461430980948a55988fbf56f85d084ac33d8a8f61b9fab88"
+    none_hash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+
+    def testAllFilled(self):
+        """All of the fields used in the hash have a value"""
+        sline = StatementLine()
+        sline.date = date(2015, 10, 2)
+        sline.memo = "Test statement line"
+        sline.amount = 123.45
+        self.assertEqual(self.all_hash, generate_stable_transaction_id(sline))
+
+    def testAmount(self):
+        """Only amount is set"""
+        sline = StatementLine()
+        sline.amount = 123.45
+        self.assertEqual(self.amt_hash, generate_stable_transaction_id(sline))
+
+    def testNone(self):
+        """Nothing is set"""
+        sline = StatementLine()
+        self.assertEqual(self.none_hash, generate_stable_transaction_id(sline))
 
 
 def to_date(dt):

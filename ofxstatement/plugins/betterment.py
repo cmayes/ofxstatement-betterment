@@ -2,7 +2,7 @@ import hashlib
 
 __author__ = 'Chris Mayes'
 __email__ = 'cmayes@cmay.es'
-__version__ = '0.2.3'
+__version__ = '0.2.4'
 
 import csv
 from ofxstatement.plugin import Plugin

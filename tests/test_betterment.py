@@ -20,6 +20,7 @@ logger = logging.getLogger('test_betterment')
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'test_data')
 ZERO_BAL_CSV_PATH = os.path.join(DATA_DIR, 'transactions.csv')
 POS_CSV_PATH = os.path.join(DATA_DIR, 'transactions_positive.csv')
+NOV_2015_CSV_PATH = os.path.join(DATA_DIR, 'transactions_11_2015.csv')
 ALL_ZERO_CSV_PATH = os.path.join(DATA_DIR, 'transactions_zeros.csv')
 HEADER_CSV_PATH = os.path.join(DATA_DIR, 'transactions_header.csv')
 EMPTY_CSV_PATH = os.path.join(DATA_DIR, 'transactions_empty.csv')
@@ -56,6 +57,18 @@ class TestBettermentStatement(unittest.TestCase):
             self.assertFalse(is_zero(stline.amount))
             self.assertTrue(date(2015, 9, 25) >= to_date(stline.date) >= date(2015, 9, 22))
 
+    def testPositiveBalanceNov2015(self):
+        """Statement starts with a positive balance and the new November 2015 CSV format."""
+        stmt = BettermentPlugin(None, {}).get_parser(NOV_2015_CSV_PATH).parse()
+        self.assertAlmostEqual(1631.25, stmt.start_balance)
+        self.assertAlmostEqual(1254.43, stmt.end_balance)
+        self.assertEqual(date(2015, 10, 29), to_date(stmt.start_date))
+        self.assertEqual(date(2015, 11, 11), to_date(stmt.end_date))
+        self.assertEqual(12, len(stmt.lines))
+        for stline in stmt.lines:
+            self.assertTrue(stline.memo in ('Initial Deposit from ****', 'Market Change', 'Dividend'))
+            self.assertFalse(is_zero(stline.amount))
+            self.assertTrue(date(2015, 11, 11) >= to_date(stline.date) >= date(2015, 10, 29))
 
 class TestBettermentSettings(unittest.TestCase):
     def testAccountNoFilterZeros(self):

@@ -26,7 +26,7 @@ setup(name='ofxstatement-betterment',
       license="GPLv3",
       keywords=["ofx", "banking", "statement"],
       classifiers=[
-          'Development Status :: 3 - Alpha',
+          'Development Status :: 4 - Beta',
           'Programming Language :: Python :: 3',
           'Natural Language :: English',
           'Topic :: Office/Business :: Financial :: Accounting',

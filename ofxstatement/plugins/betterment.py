@@ -1,4 +1,7 @@
+from datetime import datetime
+
 import hashlib
+from ofxstatement.statement import StatementLine, Statement
 
 __author__ = 'Chris Mayes'
 __email__ = 'cmayes@cmay.es'
@@ -6,7 +9,7 @@ __version__ = '0.2.5'
 
 import csv
 from ofxstatement.plugin import Plugin
-from ofxstatement.parser import CsvStatementParser
+from ofxstatement.parser import StatementParser
 import re
 
 
@@ -42,23 +45,27 @@ def process_balances(stmt):
     """
     if not stmt.lines:
         return False
-    first_line = stmt.lines[0]
+    date_sorted_lines = sorted(stmt.lines, key=lambda k: k.date)
+    first_line = date_sorted_lines[0]
     stmt.start_balance = (first_line.end_balance - first_line.amount)
-    stmt.end_balance = stmt.lines[-1].end_balance
-    stmt.start_date = min(sl.date for sl in stmt.lines)
-    stmt.end_date = max(sl.date for sl in stmt.lines)
+    stmt.start_date = first_line.date
+    last_line = date_sorted_lines[-1]
+    stmt.end_balance = last_line.end_balance
+    stmt.end_date = last_line.date
     return True
 
 
-class BettermentParser(CsvStatementParser):
-    mappings = {"date": 4,
-                "memo": 1,
-                "amount": 2
+class BettermentParser(StatementParser):
+    mappings = {"date": "Date Completed",
+                "memo": "Transaction Description",
+                "amount": "Amount"
                 }
-    date_format = "%Y-%m-%d %H:%M:%S.%f"
+    date_format = "%Y-%m-%d %H:%M:%S %z"
+    old_date_format = "%Y-%m-%d %H:%M:%S.%f"
 
     def __init__(self, fin, encoding):
-        super(BettermentParser, self).__init__(fin)
+        self.statement = Statement()
+        self.fin = fin
         self.encoding = encoding
 
     def parse(self):
@@ -69,7 +76,7 @@ class BettermentParser(CsvStatementParser):
         May raise exceptions.ParseException on malformed input.
         """
         with open(self.fin, 'r', encoding=self.encoding) as fhandle:
-            for line in csv.reader(fhandle):
+            for line in csv.DictReader(fhandle):
                 self.cur_record += 1
                 if not line:
                     continue
@@ -81,28 +88,34 @@ class BettermentParser(CsvStatementParser):
             return self.statement
 
     def parse_record(self, line):
-        if self.cur_record == 1:
-            return None
+        san_line = {}
+        for lkey, lval in line.items():
+            san_line[lkey] = re.sub("\$", "", lval)
 
-        san_line = []
-        for lval in line:
-            san_line.append(re.sub("\$", "", lval))
+        stmt_line = StatementLine()
+        for field, col in self.mappings.items():
+            rawvalue = san_line[col]
+            value = self.parse_value(rawvalue, field)
+            setattr(stmt_line, field, value)
 
-        sl = super(BettermentParser, self).parse_record(san_line)
-
-        if self.statement.filter_zeros and is_zero(sl.amount):
+        if self.statement.filter_zeros and is_zero(stmt_line.amount):
             return None
 
         try:
-            sl.end_balance = float(san_line[3])
+            stmt_line.end_balance = float(san_line['Ending Balance'])
         except ValueError:
             # Usually indicates a pending transaction
             return None
 
         # generate transaction id out of available data
-        sl.id = generate_stable_transaction_id(sl)
-        return sl
+        stmt_line.id = generate_stable_transaction_id(stmt_line)
+        return stmt_line
 
+    def parse_datetime(self, value):
+        try:
+            return datetime.strptime(value, self.date_format)
+        except ValueError:
+            return datetime.strptime(value, self.old_date_format)
 
 def is_zero(fval):
     """Returns whether the given float is an approximation of zero."""

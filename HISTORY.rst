@@ -4,6 +4,12 @@
 History
 -------
 
+0.3.0 (2015-11-15)
+------------------
+
+* Updated to support newer CSV format by using header row rather than index, support
+  the new date format, and sort by date for beginning and ending balance.
+
 0.2.4 (2015-10-18)
 ------------------
 

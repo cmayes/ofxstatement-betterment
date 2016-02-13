@@ -10,7 +10,7 @@ from ofxstatement.statement import StatementLine, Statement
 
 __author__ = 'Chris Mayes'
 __email__ = 'cmayes@cmay.es'
-__version__ = '0.3.0'
+__version__ = '0.3.1'
 
 
 def warning(*objs):

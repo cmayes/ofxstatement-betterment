@@ -1,16 +1,20 @@
+import csv
+import sys
 from datetime import datetime
 
 import hashlib
+import re
+from ofxstatement.parser import StatementParser
+from ofxstatement.plugin import Plugin
 from ofxstatement.statement import StatementLine, Statement
 
 __author__ = 'Chris Mayes'
 __email__ = 'cmayes@cmay.es'
 __version__ = '0.3.0'
 
-import csv
-from ofxstatement.plugin import Plugin
-from ofxstatement.parser import StatementParser
-import re
+
+def warning(*objs):
+    print("WARNING: ", *objs, file=sys.stderr)
 
 
 class BettermentPlugin(Plugin):
@@ -95,7 +99,12 @@ class BettermentParser(StatementParser):
         stmt_line = StatementLine()
         for field, col in self.mappings.items():
             rawvalue = san_line[col]
-            value = self.parse_value(rawvalue, field)
+            try:
+                value = self.parse_value(rawvalue, field)
+            except ValueError as e:
+                # Invalid data line; skip it
+                warning("Error parsing value '{}' on line '{}': {}".format(rawvalue, san_line, e))
+                return None
             setattr(stmt_line, field, value)
 
         if self.statement.filter_zeros and is_zero(stmt_line.amount):

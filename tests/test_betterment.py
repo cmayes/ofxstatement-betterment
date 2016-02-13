@@ -21,6 +21,7 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), 'test_data')
 ZERO_BAL_CSV_PATH = os.path.join(DATA_DIR, 'transactions.csv')
 POS_CSV_PATH = os.path.join(DATA_DIR, 'transactions_positive.csv')
 NOV_2015_CSV_PATH = os.path.join(DATA_DIR, 'transactions_11_2015.csv')
+NOV_2015_CSV_PATH_NO_COMPLETED = os.path.join(DATA_DIR, 'transactions_11_2015_no_completed.csv')
 ALL_ZERO_CSV_PATH = os.path.join(DATA_DIR, 'transactions_zeros.csv')
 HEADER_CSV_PATH = os.path.join(DATA_DIR, 'transactions_header.csv')
 EMPTY_CSV_PATH = os.path.join(DATA_DIR, 'transactions_empty.csv')
@@ -69,6 +70,19 @@ class TestBettermentStatement(unittest.TestCase):
             self.assertTrue(stline.memo in ('Initial Deposit from ****', 'Market Change', 'Dividend'))
             self.assertFalse(is_zero(stline.amount))
             self.assertTrue(date(2015, 11, 11) >= to_date(stline.date) >= date(2015, 10, 29))
+
+    def testPositiveBalanceNov2015NoCompleted(self):
+        """Statement is missing a completed date for the latest line in the new November 2015 CSV format."""
+        stmt = BettermentPlugin(None, {}).get_parser(NOV_2015_CSV_PATH_NO_COMPLETED).parse()
+        self.assertAlmostEqual(1631.25, stmt.start_balance)
+        self.assertAlmostEqual(1240.33, stmt.end_balance)
+        self.assertEqual(date(2015, 10, 29), to_date(stmt.start_date))
+        self.assertEqual(date(2015, 11, 10), to_date(stmt.end_date))
+        self.assertEqual(11, len(stmt.lines))
+        for stline in stmt.lines:
+            self.assertTrue(stline.memo in ('Initial Deposit from ****', 'Market Change', 'Dividend'))
+            self.assertFalse(is_zero(stline.amount))
+            self.assertTrue(date(2015, 11, 10) >= to_date(stline.date) >= date(2015, 10, 29))
 
 class TestBettermentSettings(unittest.TestCase):
     def testAccountNoFilterZeros(self):

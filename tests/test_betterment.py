@@ -4,13 +4,14 @@
 Tests for the ofxstatement Betterment plugin.
 """
 from datetime import date
+from decimal import Decimal
 import logging
 import unittest
 from ofxstatement.statement import StatementLine
 
 import os
 
-from ofxstatement.plugins.betterment import BettermentPlugin, is_zero, generate_stable_transaction_id
+from ofxstatement.plugins.betterment import BettermentPlugin, generate_stable_transaction_id
 
 __author__ = 'cmayes'
 
@@ -35,53 +36,53 @@ class TestBettermentStatement(unittest.TestCase):
     def testZeroBalance(self):
         """Statement starts with a zero balance."""
         stmt = BettermentPlugin(None, {}).get_parser(ZERO_BAL_CSV_PATH).parse()
-        self.assertAlmostEqual(0.0, stmt.start_balance)
-        self.assertAlmostEqual(817.44, stmt.end_balance)
+        self.assertEqual(Decimal('0.0'), stmt.start_balance)
+        self.assertEqual(Decimal('817.44'), stmt.end_balance)
         self.assertEqual(date(2015, 9, 22), to_date(stmt.start_date))
         self.assertEqual(date(2015, 9, 25), to_date(stmt.end_date))
         self.assertEqual(5, len(stmt.lines))
         for stline in stmt.lines:
             self.assertTrue(stline.memo in ('Initial Deposit from ****', 'Market Change'))
-            self.assertFalse(is_zero(stline.amount))
+            self.assertFalse(stline.amount == 0)
             self.assertTrue(date(2015, 9, 25) >= to_date(stline.date) >= date(2015, 9, 22))
 
     def testPositiveBalance(self):
         """Statement starts with a positive balance."""
         stmt = BettermentPlugin(None, {}).get_parser(POS_CSV_PATH).parse()
-        self.assertAlmostEqual(1000.0, stmt.start_balance)
-        self.assertAlmostEqual(1817.44, stmt.end_balance)
+        self.assertEqual(Decimal('1000.0'), stmt.start_balance)
+        self.assertEqual(Decimal('1817.44'), stmt.end_balance)
         self.assertEqual(date(2015, 9, 22), to_date(stmt.start_date))
         self.assertEqual(date(2015, 9, 25), to_date(stmt.end_date))
         self.assertEqual(5, len(stmt.lines))
         for stline in stmt.lines:
             self.assertTrue(stline.memo in ('Initial Deposit from ****', 'Market Change'))
-            self.assertFalse(is_zero(stline.amount))
+            self.assertFalse(stline.amount == 0)
             self.assertTrue(date(2015, 9, 25) >= to_date(stline.date) >= date(2015, 9, 22))
 
     def testPositiveBalanceNov2015(self):
         """Statement starts with a positive balance and the new November 2015 CSV format."""
         stmt = BettermentPlugin(None, {}).get_parser(NOV_2015_CSV_PATH).parse()
-        self.assertAlmostEqual(1631.25, stmt.start_balance)
-        self.assertAlmostEqual(1254.43, stmt.end_balance)
+        self.assertEqual(Decimal('1631.25'), stmt.start_balance)
+        self.assertEqual(Decimal('1254.43'), stmt.end_balance)
         self.assertEqual(date(2015, 10, 29), to_date(stmt.start_date))
         self.assertEqual(date(2015, 11, 11), to_date(stmt.end_date))
         self.assertEqual(12, len(stmt.lines))
         for stline in stmt.lines:
             self.assertTrue(stline.memo in ('Initial Deposit from ****', 'Market Change', 'Dividend'))
-            self.assertFalse(is_zero(stline.amount))
+            self.assertFalse(stline.amount == 0)
             self.assertTrue(date(2015, 11, 11) >= to_date(stline.date) >= date(2015, 10, 29))
 
     def testPositiveBalanceNov2015NoCompleted(self):
         """Statement is missing a completed date for the latest line in the new November 2015 CSV format."""
         stmt = BettermentPlugin(None, {}).get_parser(NOV_2015_CSV_PATH_NO_COMPLETED).parse()
-        self.assertAlmostEqual(1631.25, stmt.start_balance)
-        self.assertAlmostEqual(1240.33, stmt.end_balance)
+        self.assertEqual(Decimal('1631.25'), stmt.start_balance)
+        self.assertEqual(Decimal('1240.33'), stmt.end_balance)
         self.assertEqual(date(2015, 10, 29), to_date(stmt.start_date))
         self.assertEqual(date(2015, 11, 10), to_date(stmt.end_date))
         self.assertEqual(11, len(stmt.lines))
         for stline in stmt.lines:
             self.assertTrue(stline.memo in ('Initial Deposit from ****', 'Market Change', 'Dividend'))
-            self.assertFalse(is_zero(stline.amount))
+            self.assertFalse(stline.amount == 0)
             self.assertTrue(date(2015, 11, 10) >= to_date(stline.date) >= date(2015, 10, 29))
 
 class TestBettermentSettings(unittest.TestCase):
@@ -135,14 +136,14 @@ class TestBettermentEmpties(unittest.TestCase):
     def testEmptyEndingBalance(self):
         """Strip out pending transactions."""
         stmt = BettermentPlugin(None, {}).get_parser(BLANK_BAL_PATH).parse()
-        self.assertAlmostEqual(1319.74, stmt.start_balance)
-        self.assertAlmostEqual(1692.68, stmt.end_balance)
+        self.assertEqual(Decimal('1319.74'), stmt.start_balance)
+        self.assertEqual(Decimal('1692.68'), stmt.end_balance)
         self.assertEqual(date(2015, 10, 2), to_date(stmt.start_date))
         self.assertEqual(date(2015, 10, 2), to_date(stmt.end_date))
         self.assertEqual(3, len(stmt.lines))
         for stline in stmt.lines:
             self.assertTrue(stline.memo in ('Dividend Reinvestment', 'Market Change'))
-            self.assertFalse(is_zero(stline.amount))
+            self.assertFalse(stline.amount == 0)
             self.assertEqual(date(2015, 10, 2), to_date(stline.date))
 
 
@@ -156,13 +157,13 @@ class TestBettermentStatementIdStability(unittest.TestCase):
         sline = StatementLine()
         sline.date = date(2015, 10, 2)
         sline.memo = "Test statement line"
-        sline.amount = 123.45
+        sline.amount = Decimal('123.45')
         self.assertEqual(self.all_hash, generate_stable_transaction_id(sline))
 
     def testAmount(self):
         """Only amount is set"""
         sline = StatementLine()
-        sline.amount = 123.45
+        sline.amount = Decimal('123.45')
         self.assertEqual(self.amt_hash, generate_stable_transaction_id(sline))
 
     def testNone(self):

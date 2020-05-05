@@ -1,6 +1,7 @@
 import csv
 import sys
 from datetime import datetime
+from decimal import Decimal, InvalidOperation
 
 import hashlib
 import re
@@ -107,12 +108,12 @@ class BettermentParser(StatementParser):
                 return None
             setattr(stmt_line, field, value)
 
-        if self.statement.filter_zeros and is_zero(stmt_line.amount):
+        if self.statement.filter_zeros and stmt_line.amount == 0:
             return None
 
         try:
-            stmt_line.end_balance = float(san_line['Ending Balance'])
-        except ValueError:
+            stmt_line.end_balance = Decimal(san_line['Ending Balance'])
+        except InvalidOperation:
             # Usually indicates a pending transaction
             return None
 
@@ -125,10 +126,6 @@ class BettermentParser(StatementParser):
             return datetime.strptime(value, self.date_format)
         except ValueError:
             return datetime.strptime(value, self.old_date_format)
-
-def is_zero(fval):
-    """Returns whether the given float is an approximation of zero."""
-    return abs(fval - 0.0) <= 0.000001
 
 
 def str2bool(v):
